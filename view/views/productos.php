@@ -29,7 +29,7 @@
                 </div>
                 <div class="form-row justify-content-center">
                   <div class="form-group col-6">
-                    <label for="correo">Correo</label>
+                    <label for="correo">Usuario</label>
                     <input type="text" class="form-control" name="correo" id="correo">
                   </div>
                 </div>

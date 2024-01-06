@@ -30,6 +30,11 @@ class MvcController {
         return $respuesta;
     }
 
+    public static function getdatosusuariocontroller($datoscontroller){
+        $respuesta = datos::getdatosusuario($datoscontroller,"usuarios");
+        return $respuesta;
+    }
+
     public static function DeleteProductController($idproductController){
         $respuesta = datos::DeleteProductModel($idproductController, "usuarios");
         return $respuesta;

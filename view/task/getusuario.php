@@ -3,23 +3,22 @@
     require_once "../../model/acciones.php";
     require_once "../../model/General.php";
 
-    class MvcUpdateProduct{
+    class MvcGetUser{
         public $enviardata;
-        public function UpdateProductView(){
+        public function getUserView(){
             $datosenvia = $this->enviardata;
             if (isset($datosenvia["correo"]) && isset($datosenvia["nombres"])){
-                    $respuesta = Mvccontroller::UpdateProductController($datosenvia);
+                    $respuesta = Mvccontroller::getdatosusuariocontroller($datosenvia);
                     echo $respuesta;
                 }else{
-                    $result = General::mensajeerror(3,"Error,no se han encontrados las variables envidas. las variables a enviar son: id,correo, nombres y contrasena");
-                    echo json_encode($result);
+                    $result = General::mensajeerror(3,"Error,no se han encontrados las variables envidas. las variables a enviar son: correo y nombres");
+                    return json_encode($result);
                 }
         }
     }
     $dato = json_decode(file_get_contents('php://input'),true);
-    $data = new MvcUpdateProduct();
-    $data -> enviardata = array("id"=>$dato["id"],
+    $data = new MvcGetUser();
+    $data -> enviardata = array(
                                 "correo"=>ucwords(strtolower($dato["correo"])),
-                                "nombres"=>$dato["nombres"],
                                 "contrasena"=>$dato["contrasena"]);
-    $data -> UpdateProductView();
+    $data -> getUserView();

@@ -16,29 +16,24 @@ $(document).ready(function () {
 });
 
 function obtenerproductos() {
-  $.ajax({
-    url: "view/task/datosproducts.php",
-    method: "GET",
-    cache: false,
-    contentType: "application/json; charset=utf-8",
-    dataType: false,
-    success: function (response) {
-      let template = "";
-      if (response === "[]") {
+  $.get("view/task/datosproducts.php")
+  .done(function(data){
+    let template = "";
+      if (data === "[]") {
         template += `
                     <div class="col-12 col-md-12 col-xl-12">
                         <p class="text-uppercase">No hay Productos registrados.</p>
                     </div>
                 `;
       } else {
-        let datos = JSON.parse(response);
+        let datos = JSON.parse(data);
         template += `
                                       
                     <table class="table table-sm table-striped-custom text-center">
                         <thead class="bg-custom text-primary">
                             <tr class="h4 font-weight-bold">
-                                <th scope="col">Id Producto</th>
-                                <th scope="col">Correo</th>
+                                <th scope="col">Id Usuario</th>
+                                <th scope="col">Usuario</th>
                                 <th scope="col">Nombre</th>
                                 <th scope="col">Contraseña</th>
                                 <th ></th>
@@ -64,7 +59,6 @@ function obtenerproductos() {
                 `;
       }
       $("#registros").html(template);
-    },
   });
 }
 
@@ -108,61 +102,59 @@ function validaciones() {
       $("#password").focus();
       break;
     default:
-      let datos = new FormData();
+      let datos = {};
       
       if ($("#accion").val() == "Editar") {
-        datos.append("id", $("#id").val());
-        datos.append("correo", $("#correo").val());
-        datos.append("nombres", $("#name").val());
-        datos.append("contrasena", $("#password").val());
-        update(datos);
+        datos = {
+          id: $("#id").val(),
+          correo: $("#correo").val(),
+          nombres: $("#name").val(),
+          contrasena: $("#password").val()
+        }
+        update(JSON.stringify(datos));
       } else {
-        datos.append("correo", $("#correo").val());
-        datos.append("nombres", $("#name").val());
-        datos.append("contrasena", $("#password").val());
-        enviarformulario(datos);
+        datos = {
+          correo: $("#correo").val(),
+          nombres: $("#name").val(),
+          contrasena: $("#password").val()
+        };        
+        enviarformulario(JSON.stringify(datos));
       }
   }
 }
 
 function enviarformulario(datos) {
-  $.ajax({
-    url: "view/task/registrerproducto.php",
-    method: "POST",
-    data: datos,
-    cache: false,
-    contentType: false,
-    processData: false,
-    success: function (respuesta) {
-      switch (respuesta) {
-        case "1":
-          Swal.fire({
-            title: "<strong>Registro Exitoso</strong>",
-            icon: "success",
-            html: '<p class="text-success font-weight-bold">Registro Exitoso.</p>',
-            showConfirmButton: false,
-            timer: 5000,
-            returnFocus: false,
-          });
-          document.getElementById("formuproducto").reset();
-          $("#exampleModalScrollable").modal("hide");
-          obtenerproductos();
-          window.setTimeout(function () {
-            window.location.href = "/solati/";
-          }, 6000);
-          break;
-        default:
-          Swal.fire({
-            title: "<strong>Error</strong>",
-            icon: "error",
-            html: '<p class="text-danger font-weight-bold">No se pudo realizar el registro.</p>',
-            showConfirmButton: false,
-            timer: 7000,
-            returnFocus: false,
-          });
-          document.getElementById("formuproducto").reset();
-      }
-    },
+  $.post("view/task/registrerproducto.php",datos)
+  .done(function(respuesta){    
+    let response = JSON.parse(respuesta);
+    switch (response["Id"]) {      
+      case "1":
+        Swal.fire({
+          title: "<strong>Registro Exitoso</strong>",
+          icon: "success",
+          html: '<p class="text-success font-weight-bold">Registro Exitoso.</p>',
+          showConfirmButton: false,
+          timer: 5000,
+          returnFocus: false,
+        });
+        document.getElementById("formuproducto").reset();
+        $("#exampleModalScrollable").modal("hide");
+        obtenerproductos();
+        window.setTimeout(function () {
+          window.location.href = "/solati/";
+        }, 6000);
+        break;
+      default:
+        Swal.fire({
+          title: "<strong>Error</strong>",
+          icon: "error",
+          html: '<p class="text-danger font-weight-bold">No se pudo realizar el registro.</p>',
+          showConfirmButton: false,
+          timer: 7000,
+          returnFocus: false,
+        });
+        document.getElementById("formuproducto").reset();
+    }
   });
 }
 
@@ -173,17 +165,13 @@ function findeditar(dato) {
   $("#id").prop('readonly',true);
   $("#delete").show();  
   $("#exampleModalScrollable").modal("show");
-  let datos = new FormData();
-  datos.append("codproduct", dato);
-  $.ajax({
-    url: "view/task/validaproduct.php",
-    method: "POST",
-    data: datos,
-    cache: false,
-    contentType: false,
-    processData: false,
-    success: function (respuesta) {
-      let datos = JSON.parse(respuesta);
+  let datos = {};
+  datos = {
+    codproduct: dato
+  }
+  $.post("view/task/validaproduct.php",JSON.stringify(datos))
+  .done(function(respuesta){
+    let datos = JSON.parse(respuesta);
       if (respuesta === "[]") {
       } else {
         datos.forEach((dato) => {
@@ -193,50 +181,42 @@ function findeditar(dato) {
             $("#password").val(dato.Password);
         });
       }
-    },
   });
 }
 
 function update(datos) {
-  $.ajax({
-    url: "view/task/updateproduct.php",
-    method: "POST",
-    data: datos,
-    cache: false,
-    contentType: false,
-    processData: false,
-    success: function (respuesta) {
-      console.log(respuesta);
-      switch (respuesta) {
-        case "1":
-          Swal.fire({
-            title: "<strong>Registro Exitoso</strong>",
-            icon: "success",
-            html: '<p class="text-success font-weight-bold">Actualizacion Exitosa.</p>',
-            showConfirmButton: false,
-            timer: 5000,
-            returnFocus: false,
-          });
-          document.getElementById("formuproducto").reset();
-          $("#exampleModalScrollable").modal("hide");
-          obtenerproductos();
-          window.setTimeout(function () {
-            window.location.href = "/solati/";
-          }, 6000);
-          break;
-        default:
-          Swal.fire({
-            title: "<strong>Error</strong>",
-            icon: "error",
-            html: '<p class="text-danger font-weight-bold">No se pudo actualizar el registro.</p>',
-            showConfirmButton: false,
-            timer: 7000,
-            returnFocus: false,
-          });
-          $("#exampleModalScrollable").modal("hide");
-          document.getElementById("formuproducto").reset();
-      }
-    },
+  $.post("view/task/updateproduct.php",datos)
+  .done(function(respuesta){
+    let response = JSON.parse(respuesta);
+    switch (response["Id"]) {
+      case "1":
+        Swal.fire({
+          title: "<strong>Registro Exitoso</strong>",
+          icon: "success",
+          html: '<p class="text-success font-weight-bold">Actualizacion Exitosa.</p>',
+          showConfirmButton: false,
+          timer: 5000,
+          returnFocus: false,
+        });
+        document.getElementById("formuproducto").reset();
+        $("#exampleModalScrollable").modal("hide");
+        obtenerproductos();
+        window.setTimeout(function () {
+          window.location.href = "/solati/";
+        }, 6000);
+        break;
+      default:
+        Swal.fire({
+          title: "<strong>Error</strong>",
+          icon: "error",
+          html: '<p class="text-danger font-weight-bold">No se pudo actualizar el registro.</p>',
+          showConfirmButton: false,
+          timer: 7000,
+          returnFocus: false,
+        });
+        $("#exampleModalScrollable").modal("hide");
+        document.getElementById("formuproducto").reset();
+    }
   });
 }
 
@@ -251,45 +231,41 @@ function Delete(dato) {
         confirmButtonText: "Si, Eliminar!",
       }).then((result) => {
         if (result.isConfirmed) {
-          let datos = new FormData();
-          datos.append("codproduct", dato);
-          $.ajax({
-            url: "view/task/deleteproduct.php",
-            method: "POST",
-            data: datos,
-            cache: false,
-            contentType: false,
-            processData: false,
-            success: function (respuesta) {
-              console.log(respuesta);
-              switch (respuesta) {
-                case "1":
-                  Swal.fire({
-                    title: "<strong>Registro Exitoso</strong>",
-                    icon: "success",
-                    html: '<p class="text-success font-weight-bold">El registro ha sido eliminado.</p>',
-                    showConfirmButton: false,
-                    timer: 5000,
-                    returnFocus: false,
-                  });
-                  document.getElementById("formuproducto").reset();
-                  $("#exampleModalScrollable").modal("hide");
-                  window.setTimeout(function () {
-                    window.location.href = "/solati";
-                  }, 6000);
-                  break;
-                default:
-                  Swal.fire({
-                    title: "<strong>Error</strong>",
-                    icon: "error",
-                    html: '<p class="text-danger font-weight-bold">No se pudo eliminar el registro.</p>',
-                    showConfirmButton: false,
-                    timer: 7000,
-                    returnFocus: false,
-                  });
-                  document.getElementById("formuproducto").reset();
-              }
-            },
+          let datos = {};
+          datos = {
+            codproduct: dato
+          }
+          $.post("view/task/deleteproduct.php",JSON.stringify(datos))
+          .done(function(respuesta){
+            console.log(respuesta);            
+            switch (respuesta) {
+              case "1":
+                Swal.fire({
+                  title: "<strong>Registro Exitoso</strong>",
+                  icon: "success",
+                  html: '<p class="text-success font-weight-bold">El registro ha sido eliminado.</p>',
+                  showConfirmButton: false,
+                  timer: 5000,
+                  returnFocus: false,
+                });
+                obtenerproductos();
+                document.getElementById("formuproducto").reset();
+                $("#exampleModalScrollable").modal("hide");
+                window.setTimeout(function () {
+                  window.location.href = "/solati";
+                }, 6000);
+                break;
+              default:
+                Swal.fire({
+                  title: "<strong>Error</strong>",
+                  icon: "error",
+                  html: '<p class="text-danger font-weight-bold">No se pudo eliminar el registro.</p>',
+                  showConfirmButton: false,
+                  timer: 7000,
+                  returnFocus: false,
+                });
+                document.getElementById("formuproducto").reset();
+            }
           });
         }
       });

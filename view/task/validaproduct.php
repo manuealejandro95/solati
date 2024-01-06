@@ -12,7 +12,7 @@
             echo $respuesta;
         }
     }
-
+    $dato = json_decode(file_get_contents('php://input'),true);
     $id = new Validaproducto();
-    $id -> identificacionproducto = $_POST["codproduct"];
+    $id -> identificacionproducto = $dato["codproduct"];
     $id -> validaproductoview();

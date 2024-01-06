@@ -1,5 +1,6 @@
 <?php
 require_once "conexion.php";
+require_once "General.php";
 class datos extends Conexion
 {
 
@@ -7,14 +8,16 @@ class datos extends Conexion
     {
         $con = Conexion::getInstance()->Conectar();
         $contrasena = md5(strtolower($datos["contrasena"]));
-        $query = "INSERT INTO $tabla (correo,nombreapellidos,contrasena) VALUES ('" . $datos["correo"] . "','" . ucwords(strtolower($datos["nombres"])) . "','" . strtolower($contrasena) . "')";
+        $query = "INSERT INTO $tabla (correo,nombreapellidos,contrasena) VALUES ('" . strtolower($datos["correo"]) . "','" . ucwords(strtolower($datos["nombres"])) . "','" . strtolower($contrasena) . "')";
         $stmt = pg_query($con, $query);
 
 
         if ($stmt) {
-            return 1;
+            $result = General::mensajeexito("Registro guardado con exito");
+            return json_encode($result);
         } else {
-            return 0;
+            $result = General::mensajeerror(0,"Error al momento de guardar el registro");
+            return json_encode($result);
         }
     }
 
@@ -27,9 +30,11 @@ class datos extends Conexion
         $stmt = pg_query($con, $query);
 
         if ($stmt) {
-            return 1;
+            $result = General::mensajeexito("Registro modificado con exito");
+            return json_encode($result);
         } else {
-            return 0;
+            $result = General::mensajeerror(0,"Error al momento de editar el registro");
+            return json_encode($result);
         }
     }
 
@@ -42,9 +47,11 @@ class datos extends Conexion
         $stmt = pg_query($con, $query);
 
         if ($stmt) {
-            return 1;
+            $result = General::mensajeexito("Registro eliminado con exito");
+            return json_encode($result);
         } else {
-            return 0;
+            $result = General::mensajeerror(0,"Error al momento de eliminar el registro");
+            return json_encode($result);
         }
     }
 
@@ -68,6 +75,33 @@ class datos extends Conexion
             return $jsonstring;
 
             pg_close($conn);
+        }else{
+            $result = General::mensajeerror(0,"Error al momento de buscar el registro");
+            return json_encode($result);
+        }
+    }
+
+    public static function getdatosusuario($datos, $tabla)
+    {
+        $conn = Conexion::getInstance()->Conectar();
+        $contrasena = md5(strtolower($datos["contrasena"]));
+        $query = "SELECT correo, contrasena FROM $tabla WHERE correo = '" . strtolower($datos["correo"]) . "' AND contrasena = '" . $contrasena . "'";
+        $result = pg_query($conn, $query);
+        if ($result) {
+            $json = [];
+            while ($row = pg_fetch_array($result,NULL,PGSQL_ASSOC)) {
+                 $json[]= array(
+                    'Correo' => $row['correo'],
+                    'Password' => $row['contrasena']
+                );
+            }
+            $jsonstring = json_encode($json);
+            return $jsonstring;
+
+            pg_close($conn);
+        }else{
+            $result = General::mensajeerror(0,"Error al momento de obtener el usuario");
+            return json_encode($result);
         }
     }
 
@@ -91,6 +125,9 @@ class datos extends Conexion
             return $jsonstring;
 
             pg_close($conn);
+        }else{
+            $result = General::mensajeerror(0,"Error al momento de obtener los registros");
+            return json_encode($result);
         }
     }
 }
